@@ -1,0 +1,7 @@
+! Paste config mode commands, line by line, with no extra white spaces
+! "Conf t" and "Exit" commands will execute automatically - only enter changes
+! Cisco IOS should ignore lines preceded with a "!"
+
+access-list 10
+permit 10.0.0.1 any
+deny any any

@@ -1,0 +1,7 @@
+! Paste hosts in the file, line by line with no extra spaces
+! IP addresses or hostnames will work - although hostnames require valid DNS resolution
+! Cisco IOS should ignore lines precede with a "!"
+
+10.0.0.1
+my_host.domain
+another_host.anotherdomain
