@@ -19,6 +19,7 @@ def WriteToFile(reply):
         f.write(reply)
         f.write('\n\n')
 
+cwd = os.getcwd()
 date = datetime.datetime.now() # Collect current date and time
 username = input('Please enter an SSH username: ')
 password = getpass()
@@ -51,13 +52,13 @@ for device in hosts:
         if enable_required.lower() == 'y': # Enters enable mode if requested
             connection.enable()
         if ad_hoc_or_file.lower() == 'n':
-            reply = f'{device} returned the following output:\n\n'\
-            +connection.send_command(command) # Runs ad-hoc command
+            reply = f'{device} returned the following output:\n\n' \
+            + connection.send_command(command) # Runs ad-hoc command
             print(reply)
             WriteToFile(reply)
         if ad_hoc_or_file.lower() == 'y':
-            reply = (f'{device} returned the following output:\n\n'\
-            +connection.send_config_from_file(command_file) # Pulls config from file and runs
+            reply = f'{device} returned the following output:\n\n' \
+            + connection.send_config_from_file(command_file) # Pulls config from file and runs
             print(reply)
             WriteToFile(reply)
         connection.disconnect()
