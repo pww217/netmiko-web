@@ -32,12 +32,32 @@ for device in hosts:
     print(device.rstrip('\n'))
 print()
 
-# If/else block collects information of command source and privileges
-
-ad_hoc_or_file = input('Are you making config changes from a file? (y/n): ')
-
+# If/else blocks collect information of command source and privileges
+while True:
+    ad_hoc_or_file = input('Are you making config changes from a file? (y/n): ')
+    if ad_hoc_or_file not in ('y', 'n'):
+        print('Not a valid response\n')
+        continue
+    if ad_hoc_or_file == 'y':
+        warning = input('\nPlease note - this will make config changes to \n\
+the live running config, which can be VERY risky. \n\
+Please write memory first. Are you sure you want to proceed? (y/n): ')
+        if warning == 'y':
+            break
+        else:
+            print('y not selected - exiting program')
+            exit()
+    else:
+        break
+# Asks about enable mode
 if ad_hoc_or_file == 'n':
-    enable_required = input('Does this command require enable mode? y/n : ')
+    while True:
+        enable_required = input('Does this command require enable mode? y/n : ')
+        if enable_required not in ('y', 'n'):
+            print('Not a valid response\n')
+            continue
+        else:
+            break
     command = input('What command do you want to run?: ')
 else:
      enable_required = 'y'
@@ -63,6 +83,7 @@ for device in hosts:
             WriteToFile(reply)
         connection.disconnect()
         print()
+
     # These two except clauses handle common errors
     except netmiko.ssh_exception.NetmikoTimeoutException:
         print(f'{device} could not be reached on port 22 - skipping to next device.\n')
