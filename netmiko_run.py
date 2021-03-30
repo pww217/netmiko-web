@@ -2,6 +2,7 @@ import netmiko
 from getpass import getpass
 import datetime
 import os
+import shutil
 
 def ExtractHosts(): # Extract list of hosts from file
     with open('hosts.txt', 'r') as hostfile:
@@ -50,15 +51,13 @@ for device in hosts:
         if enable_required.lower() == 'y': # Enters enable mode if requested
             connection.enable()
         if ad_hoc_or_file.lower() == 'n':
-            print(f'{device} returned the following output:')
-            print()
-            reply = connection.send_command(command) # Runs ad-hoc command
+            reply = f'{device} returned the following output:\n\n'\
+            +connection.send_command(command) # Runs ad-hoc command
             print(reply)
             WriteToFile(reply)
         if ad_hoc_or_file.lower() == 'y':
-            print(f'{device} returned the following output:')
-            print()
-            reply = connection.send_config_from_file(command_file) # Pulls config from file and runs
+            reply = (f'{device} returned the following output:\n\n'\
+            +connection.send_config_from_file(command_file) # Pulls config from file and runs
             print(reply)
             WriteToFile(reply)
         connection.disconnect()
@@ -74,8 +73,19 @@ for device in hosts:
         with open(outfile, 'a') as f:
             f.write(f'Output from {device} could not be encoded into UTF-8 format. Output could not be written to file.\n\n')
         continue
+# Create logdir if not existing already
+if os.path.isdir('logs') == False:
+    os.mkdir(cwd+'\\logs')
+logdir = cwd+'\\logs\\'
+# Remove output.txt if program failed to finish last time
+if os.path.exists(logdir+'output.txt'):
+    os.remove(logdir+'output.txt')
 # Two kinds of files are written afterwards based on command type
 if ad_hoc_or_file == 'n':
+    shutil.move(outfile, logdir)
+    os.chdir(logdir)
     os.rename(outfile, command.replace(' ', '_') + f'_{date.month}-{date.day}-{date.year}-{date.hour}-{date.minute}.txt')
 if ad_hoc_or_file == 'y':
+    shutil.move(outfile, logdir)
+    os.chdir(logdir)
     os.rename(outfile, f'config_changes_{date.month}-{date.day}-{date.year}-{date.hour}-{date.minute}.txt')
