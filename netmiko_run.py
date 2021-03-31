@@ -19,10 +19,9 @@ def WriteToFile(reply):
         f.write(reply)
         f.write('\n\n')
 
+# Global Variables
 cwd = os.getcwd()
 date = datetime.datetime.now() # Collect current date and time
-username = input('Please enter an SSH username: ')
-password = getpass()
 hosts = ExtractHosts()
 command_file = 'config_commands.txt'
 outfile = 'output.txt'
@@ -61,6 +60,11 @@ if ad_hoc_or_file == 'n':
     command = input('What command do you want to run?: ')
 else:
      enable_required = 'y'
+print()
+
+# Request SSH credentials
+username = input('Please enter an SSH username: ')
+password = getpass()
 
 # Main loop cycles through devices with supplies variables and credentials to writes output to a file
 
@@ -95,6 +99,9 @@ for device in hosts:
         with open(outfile, 'a') as f:
             f.write(f'Output from {device} could not be encoded into UTF-8 format. Output could not be written to file.\n\n')
         continue
+    except netmiko.ssh_exception.NetmikoAuthenticationException:
+        print('SSH Credentials are not valid - please check and try again.')
+        exit()
 # Create logdir if not existing already
 if os.path.isdir('logs') == False:
     os.mkdir(cwd+'\\logs')
@@ -106,7 +113,11 @@ if os.path.exists(logdir+'output.txt'):
 if ad_hoc_or_file == 'n':
     shutil.move(outfile, logdir)
     os.chdir(logdir)
-    os.rename(outfile, command.replace(' ', '_') + f'_{date.month}-{date.day}-{date.year}-{date.hour}-{date.minute}.txt')
+    # Name after command and remove illegal characters from file name
+    new_file_name = command.replace('|', '')
+    new_file_name = new_file_name.replace(' ', '_')
+    print('New file created in logs/'+new_file_name)
+    os.rename(outfile, new_file_name + f'_{date.month}-{date.day}-{date.year}-{date.hour}-{date.minute}.txt')
 if ad_hoc_or_file == 'y':
     shutil.move(outfile, logdir)
     os.chdir(logdir)
