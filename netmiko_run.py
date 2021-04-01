@@ -4,26 +4,30 @@ import datetime
 import os
 import shutil
 
+"""
+Add error handling for missing/empty host/config files.
+
+"""
+
 def ExtractHosts(): # Extract list of hosts from file
     with open('hosts.txt', 'r') as hostfile:
         hosts = hostfile.readlines()
     return hosts
 
-def ExtractCommands(command_file): #
-    with open('commands.txt', 'r') as cmdfile:
+def ExtractCommands(): #
+    with open('config_commands.txt', 'r') as cmdfile:
         commands = cmdfile.readlines()
     return commands
 
 def WriteToFile(reply):
     with open(outfile, 'a') as f:
-        f.write(reply)
-        f.write('\n\n')
+        f.write(reply + '\n\n')
 
 # Global Variables
 cwd = os.getcwd()
 date = datetime.datetime.now() # Collect current date and time
 hosts = ExtractHosts()
-command_file = 'config_commands.txt'
+command_file = ExtractCommands()
 outfile = 'output.txt'
 
 print('The following devices will be accessed:\n')
@@ -116,7 +120,7 @@ if ad_hoc_or_file == 'n':
     # Name after command and remove illegal characters from file name
     new_file_name = command.replace('|', '')
     new_file_name = new_file_name.replace(' ', '_')
-    print('New file created in logs/'+new_file_name)
+    print('New file created in logs/' + new_file_name + f'_{date.month}-{date.day}-{date.year}-{date.hour}-{date.minute}.txt')
     os.rename(outfile, new_file_name + f'_{date.month}-{date.day}-{date.year}-{date.hour}-{date.minute}.txt')
 if ad_hoc_or_file == 'y':
     shutil.move(outfile, logdir)
