@@ -1,15 +1,15 @@
 from flask import Flask, request, render_template, redirect
 import logging.config
 import logging
-import netmiko
+from netmiko import ConnectHandler, ssh_exception
 import os
 
 """
 Flask-based Netmiko application for Cisco IOS and Linux
-Peter Wilson
-pww217@gmail.com
+Peter W
+Github.com/pww217
 
-To do:
+To do: (* means done)
 
 1. Cleaner landing page *
 2. Better exception handling and logging *
@@ -42,22 +42,6 @@ Reach goals:
 11. Pre-deployment testing
 12. Cache Docker layers for faster deploy
 13. Pipeline for infrastructure* (terratest)
-
-Advantages over CLI:
-
-1. More OS-neutral (Docker even moreso)
-2. Centralized and always available; service vs executable
-3. Browser caching
-4. Nicer UI and formatting
-5. Flow logic more simple
-6. Concurrent users possible (host.txt must not be shared - use DB)
-7. More scalable; able to add more and more new OS's with less logic
-8. Flask exception handling fallback
-
-Drawbacks:
-
-1. CLI stored in variable (not file) and not encrypted like GetPass();
-   would be visible if POST packet was captured. HTTPS required for safe transport.
 
 """
 
@@ -148,7 +132,7 @@ def gather_input(os_type):
         enable_mode = 'on'
     else:
         enable_mode = 'off'
-    logging.info(f'user = {user}; command = {command}; ' \
+    logging.info(f'ostype = {os_type}, user = {user}; command = {command}; ' \
         f'enable_mode = {enable_mode}')
     return hosts, user, password, command, enable_mode
 
@@ -165,12 +149,12 @@ def run_command(hosts, os_type, user, password, command, enable_mode='None'):
                 with open('config.txt', 'r') as config_file:
                     logging.info(f'config.txt contains {config_file.read()}')
                 os_type = 'cisco_xe' # Change back to valid OS type for below method
-                connection = netmiko.ConnectHandler(host=device, device_type=os_type, \
+                connection = ConnectHandler(host=device, device_type=os_type, \
                     username=user, password=password, secret=password) # Create connection handler
                 reply = f'<h3>{device} returned the following output:</h3>'+ \
                 connection.send_config_from_file(config_file='config.txt') # Run list of commands in config mode
             else: # Used for all non-config changing ad-hoc commands
-                connection = netmiko.ConnectHandler(host=device, device_type=os_type, \
+                connection = ConnectHandler(host=device, device_type=os_type, \
                     username=user, password=password, secret=password) # Create connection handler   
                 if enable_mode == 'on': # Check for enable mode and activate
                     connection.enable()       
@@ -180,18 +164,22 @@ def run_command(hosts, os_type, user, password, command, enable_mode='None'):
             logging.info(f'Wrote {device} output to file')
             connection.disconnect() # Graceful SSH disconnect
         # Common exceptions and a catch-all
-        except netmiko.ssh_exception.NetmikoTimeoutException:
+        except ssh_exception.NetmikoTimeoutException:
             message = f'<h3>{device} could not be reached on port 22 - ' \
                                         'skipping to next device.</h3>'
             logging.warning(message.replace('</h3>', '').replace('<h3>', ''))
             write_output_file(message)
-        except netmiko.ssh_exception.NetmikoAuthenticationException:
-            message = f'Wrote {device} had invalid credentials'
+        except ssh_exception.NetmikoAuthenticationException:
+            message = f'<h3>{device} had invalid credentials</h3>'
             logging.warning(message.replace('</h3>', '').replace('<h3>', ''))
             write_output_file(message)
         except UnicodeEncodeError:
-            message = f'Output from {device} could not be encoded into UTF-8 format.' \
-                            'Output could not be written to file.'
+            message = f'<h3>Output from {device} could not be encoded into UTF-8 format.' \
+                            'Output could not be written to file.</h3>'
+            logging.error(message.replace('</h3>', '').replace('<h3>', ''))
+            write_output_file(message)
+        except ValueError:
+            message = f'<h3>Unrecognized shell prompt from {device}; usually caused by using a non-standard or customized shell.</h3>'
             logging.error(message.replace('</h3>', '').replace('<h3>', ''))
             write_output_file(message)
 
