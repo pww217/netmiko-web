@@ -1,5 +1,7 @@
 -- Netmiko Run ---  pww217, 2021
 
+WARNING: This CLI version is no longer supported and likely broken
+
 This program will allow you use run ad-hoc commands in user or enable mode on a Cisco 
 IOS-XE device, as well as submit configuration changes from an input file directly.
 
