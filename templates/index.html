@@ -1,0 +1,21 @@
+<body style="font-family:helvetica">
+<h1><span style="color: #000000;">netmiko-run</span></h1>
+<p><span style="color: #000000;"><em>Remote SSH execution
+     for Cisco IOS and Linux</em></span></p>
+<p><span style="color: #000000;"><sub>Peter Wilson 2021</sub></span></p>
+<p>&nbsp;</p>
+<h4>What would you like to do?</h4>
+<form action="" method="POST">
+<p><input id="cisco" name="selection" type="radio" value="cisco_xe" />
+     <label for="cisco">Run a Cisco IOS-XE command</label><br /> 
+<input id="linux" name="selection" type="radio" value="linux " />
+ <label for="linux">Run a Linux command</label></p>
+<p></p>
+<h4>Enter host or hosts below:</h4>
+<sub>Hostnames or IP addresses
+<p>Hosts entries persist until overwritten</p>
+<p><a href="/hosts/"> See current hosts</a> | <a href="/log/">See runtime log</a></p></sub>
+<textarea id="hosts" 
+    cols="35" name="hosts" rows="10"></textarea><br /><br />  
+    <input type="submit" value="Submit" /></form>
+</body>

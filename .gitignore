@@ -1,0 +1,10 @@
+run.log*
+output.txt
+output.html
+lib64
+bin/
+pyvenv.cfg
+venv/
+hosts.txt
+update-service
+notes
