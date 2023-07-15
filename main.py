@@ -1,48 +1,12 @@
 from flask import Flask, request, render_template, redirect
 import logging.config
 import logging
-from netmiko import ConnectHandler, ssh_exception
+from netmiko import ConnectHandler, NetmikoAuthenticationException, NetmikoTimeoutException
 import os
 
 """
 Flask-based Netmiko application for Cisco IOS and Linux
-Peter W
-Github.com/pww217
-
-To do: (* means done)
-
-1. Cleaner landing page *
-2. Better exception handling and logging *
-3. File cleanup *
-4. Hide password on browser *
-5. Revamp index with radio, checkbox, redirectors *
-6. Implement Cisco pages *
-7. Add show host file page *
-8. Implement logging *
-9. Spruce up UI
-10. More debugging *
-11. Dark Mode?!?!
-12. User/Password/Command exceptions*
-13. Specific error at index page for missing fields*
-14. Add show log to index page*
-
-
-Reach goals:
-
-1. Implement real database
-2. Allow for multiple concurrent users (hosts.txt would need to separate sessions)
-3. Encrypt password in memory or db
-4. Build into docker container *
-5. Implemented automated testing
-6. HTTPS
-7. SSH key support - branch key_support
-8. NX-OS Support
-9. Github Actions pipeline for app*
-10. DockerHub Deployment*
-11. Pre-deployment testing
-12. Cache Docker layers for faster deploy
-13. Pipeline for infrastructure* (terratest)
-
+https://github.com/pww217
 """
 
 # ~~~ Global Variables
@@ -73,7 +37,7 @@ logging.config.dictConfig({
         'backupCount': 5,
     }},
     'root': {
-        'level': 'INFO',
+        'level': 'DEBUG',
         'handlers': ['wsgi', 'file']
     }
 })
@@ -159,17 +123,17 @@ def run_command(hosts, os_type, user, password, command, enable_mode='None'):
                 if enable_mode == 'on': # Check for enable mode and activate
                     connection.enable()       
                 reply = f'<h3>{device} returned the following output:</h3>'+ \
-                connection.send_command(command) # Runs a single command      
+                connection.send_command(command, expect_string="[\\ ~\\#]") # Runs a single command      
             write_output_file(reply)
             logging.info(f'Wrote {device} output to file')
             connection.disconnect() # Graceful SSH disconnect
         # Common exceptions and a catch-all
-        except ssh_exception.NetmikoTimeoutException:
+        except NetmikoTimeoutException:
             message = f'<h3>{device} could not be reached on port 22 - ' \
                                         'skipping to next device.</h3>'
             logging.warning(message.replace('</h3>', '').replace('<h3>', ''))
             write_output_file(message)
-        except ssh_exception.NetmikoAuthenticationException:
+        except NetmikoAuthenticationException:
             message = f'<h3>{device} had invalid credentials</h3>'
             logging.warning(message.replace('</h3>', '').replace('<h3>', ''))
             write_output_file(message)

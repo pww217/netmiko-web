@@ -1,2 +1,2 @@
-flask
-netmiko
+flask==2.3.2
+netmiko==4.2.0
